@@ -1,7 +1,7 @@
 const http = require('http');
 const querystring = require('querystring');
 
-// An ID of the user that created WebHook
+// An ID of the responsible user of the company (that created WebHook)
 var user_id = 1;
 var webhook = '31uhq2q855fk1foj'
 var domain = 'api.bitrix24.com';
@@ -10,7 +10,7 @@ var format = 'json';
 
 var lead_data = {
     'fields': {
-        'ASSIGNED_BY_ID': 1,
+        'ASSIGNED_BY_ID': user_id,
         'STATUS_ID': 'NEW',
         'OPENED': 'Y',
 
