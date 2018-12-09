@@ -1,0 +1,17 @@
+{
+  "name": "btrx-express-webserver",
+  "version": "1.0.0",
+  "description": "Express webserver using Bitrix API",
+  "main": "index.js",
+  "scripts": {
+    "server": "node index.js"
+  },
+  "author": "Yukal Alexander <yukal.alexander@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "methods": "^1.1.2"
+  }
+}

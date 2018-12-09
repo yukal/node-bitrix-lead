@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+source _config
+DATA='{"fields":{"ASSIGNED_BY_ID":'$BX_USER_ID',"STATUS_ID":"NEW","OPENED":"Y","TITLE":"Lilu Dallas","NAME":"Lilu","LAST_NAME":"Dallas","SECOND_NAME":"Multipass","PHONE":[{"VALUE":"9721234567","VALUE_TYPE":"WORK"}],"EMAIL":[{"VALUE":"lilu@gmail.com","VALUE_TYPE":"WORK"}],"WEB":"lilu-dallas.com","IM":"Skype: lilu-dallas","COMPANY_TITLE":"Intergalactic balance","SOURCE_ID":360,"SOURCE_DESCRIPTION":"Venus Planet","STATUS_DESCRIPTION":"Created new lead","POST":"Manager","ADDRESS":"StreetName, 10, 12a","ADDRESS_2":"StreetName, 12, 10a, of. 303","ADDRESS_CITY":"Haifa","ADDRESS_REGION":"Nesher","ADDRESS_PROVINCE":"Nesher","ADDRESS_COUNTRY":"Israel","ADDRESS_COUNTRY_CODE":972,"ADDRESS_POSTAL_CODE":31000,"CURRENCY_ID":"USD","OPPORTUNITY":15000,"COMMENTS":"A test request by Nodejs","ORIGINATOR_ID":10,"ORIGIN_ID":10},"params":{"REGISTER_SONET_EVENT":"Y"}}'
+
+curl -s "$BX_URL/crm.lead.add.json" \
+  -H "Content-Type: application/json" -d "'"$DATA"'"

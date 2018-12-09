@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+source _config
+
+curl -s $BX_URL/crm.lead.delete.json \
+  -H "Content-Type: application/json" -d '{"id":9}'

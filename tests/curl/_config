@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+BX_USER_ID=
+BX_WEBHOOK=
+BX_USER=endotech
+BX_DOMAIN=bitrix24.com
+BX_URL=https://$BX_USER.$BX_DOMAIN/rest/$BX_USER_ID/$BX_WEBHOOK

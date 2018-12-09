@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+source _config
+DATA='{"ID":11,"fields":{"LAST_NAME":"Multipass","SECOND_NAME":"Dallas","CURRENCY_ID":"EUR","OPPORTUNITY":12000},"params":{"REGISTER_SONET_EVENT":"Y"}}'
+
+#curl -s "$BX_URL/crm.lead.update.json?id=11" \
+curl -s $BX_URL/crm.lead.update.json \
+  -H "Content-Type: application/json" -d "$DATA"

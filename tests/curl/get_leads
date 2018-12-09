@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+source _config
+
+curl -s $BX_URL/crm.lead.list.json
