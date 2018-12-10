@@ -22,10 +22,10 @@ Vue.http.options.emulateHTTP = true
 // Vue.http.options.emulateJSON = true
 
 Vue.filter('date', function (value) {
-  var date = new Date(value)
-  var day = date.getDay() || '';
-  var month = date.getMonth() || '';
-  var year = date.getFullYear() || '';
+  var day, month, year, date = new Date(value)
+  day = date.getDate() || '';
+  month = date.getMonth() || '';
+  year = date.getFullYear() || '';
   return [day, month, year].join('.')
 })
 
