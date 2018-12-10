@@ -1,4 +1,4 @@
-# node-bitrix-lead
+# bitrix-api-vuejs
 
 ### Start Server
 
@@ -16,4 +16,14 @@ $ npm run server
 $ cd client
 $ npm install
 $ npm run server
+```
+
+### Start With Docker
+
+``` bash
+# Start
+$ docker-compose up
+
+# Cleanup
+$ docker-compose down
 ```

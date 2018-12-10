@@ -34,7 +34,7 @@
 export default {
   data () {
     return {
-      apiUrl: 'http://0.0.0.0:8181/lead',
+      apiUrl: 'http://172.70.0.2:8181/lead',
       fields: [
         'ID',
         'TITLE',

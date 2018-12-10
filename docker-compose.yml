@@ -1,0 +1,47 @@
+# Docker Compose
+#
+# Author: Yukal Alexander <yukal@email.ua>
+# Version: 1.0
+# License: MIT
+
+version: '3.3'
+
+services:
+  server:
+    container_name: btrx_srv
+    image: node:10
+    user: '1000:985'
+    networks:
+      network:
+        ipv4_address: 172.70.0.2
+    expose:
+      - '8181'
+    volumes:
+      - ./server:/app
+    working_dir: /app
+    command: ['npm','run','server']
+
+  client:
+    container_name: btrx_clnt
+    image: node:10
+    user: '1000:985'
+    networks:
+      network:
+        ipv4_address: 172.70.0.3
+    ports:
+      - 8000:8080
+    volumes:
+      - ./client:/app
+    working_dir: /app
+    command: ['npm','run','server']
+    depends_on:
+      - server
+
+networks:
+  network:
+    # name: btrx_network
+    driver: bridge
+    external: false
+    ipam:
+      config:
+        - subnet: 172.70.0.0/16
