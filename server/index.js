@@ -1,3 +1,4 @@
+const Promise = require('promise');
 const https = require('https');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -9,7 +10,7 @@ const conf = require('./_config');
 app.options(conf.cors.options, cors());
 app.use(function (req, res, next) {
     // res.header("Access-Control-Allow-Origin", '*');
-    res.header("Access-Control-Allow-Origin", `http://${conf.listen_host}:${conf.cors.allow_port}`);
+    res.header("Access-Control-Allow-Origin", conf.cors.allow_origin);
     res.header("Access-Control-Allow-Headers", conf.cors.allow_headers);
     next();
 });
@@ -24,57 +25,44 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const request_options = {
     host: conf.domain,
     method: 'GET',
-    port: 443
+    port: 443,
+    headers: { 'Cache-Control': 'no-cache' }
 };
 
-function build_response(response, data) {
-    var content_type = response.headers['content-type'];
-    var json = JSON.stringify({
-        headers: response.headers,
-        statusCode: response.statusCode,
-        statusMessage: response.statusMessage,
-    });
+function btrx_request(options, postData) {
+    return new Promise(function (resolve, reject) {
+        var body = '';
+        var req = https.request(options, function (res) {
+            res.setEncoding('utf8');
 
-    data = (content_type.indexOf('application/json') === -1)
-        ? `"data":${JSON.stringify(data)}` : `"data":${data}`;
+            // reject on bad status
+            // if (res.statusCode < 200 || res.statusCode >= 300) {
+            //     return reject(new Error('statusCode=' + res.statusCode));
+            // }
 
-    // Append body data to json data
-    json = json.substr(1, json.length - 2);
-    json = [json, data].join(',');
+            // cumulate data
+            res.on('data', function (chunk) {
+                body = chunk;
+            });
 
-    return `{${json}}`;
-}
-
-function request_handler(response_handler, options, data = '') {
-    const simple_requests = { 'GET': '', 'DELETE': '' };
-
-    const req = https.request(options, function (res) {
-        console.log(`${req.method} [${res.statusCode}] ${res.statusMessage} ${req.path}`);
-
-        res.setEncoding('utf8');
-        res.on('data', function (body) {
-            // response_handler.status(res.statusCode).send(build_response(res, body));
-            response_handler.setHeader('Content-Type', res.headers['content-type']);
-            response_handler.status(res.statusCode).send(body);
-
-            console.log(res.headers['content-type']);
-            console.log(body, "\n");
-
-            response_handler.end();
+            // resolve on end
+            res.on('end', function () {
+                resolve({ body: body, res: res });
+            });
         });
-    }).on('error', (error) => {
-        console.error(error);
+
+        // reject on request error
+        req.on('error', function (err) {
+            reject({ body: body, res: res, err: err });
+        });
+
+        if (postData) {
+            req.write(postData);
+        }
+
+        // IMPORTANT
+        req.end();
     });
-
-    if (!(options.method in simple_requests) && data.length) {
-        req.write(data);
-    }
-    req.end();
-
-    this.setTimeout(() => {
-        response_handler.setHeader('Content-Type', 'application/json')
-        response_handler.status(504).json({ 'error': 'Timeout' }).end()
-    }, 8000);
 }
 
 
@@ -85,21 +73,12 @@ app.get('/lead', function (req, res) {
         path: `/rest/${conf.user_id}/${conf.webhook}/${action}.${conf.format}`
     });
 
-    const _req = https.request(options, function (_res) {
-        console.log(`${_req.method} [${_res.statusCode}] ${_res.statusMessage} ${_req.path}`);
-
-        _res.setEncoding('utf8');
-        _res.on('data', function (body) {
-            // res.status(_res.statusCode).send(build_response(res, body));
-            res.setHeader('Content-Type', _res.headers['content-type']);
-            res.status(_res.statusCode).send(body).end();
-            console.log(_res.headers['content-type'], body, "\n");
-        });
-    }).on('error', (error) => {
-        console.error(error);
-    }).end();
-
-    // request_handler(res, options);
+    btrx_request(options).then(function (data) {
+        res.set('Content-Type', data.res.headers['content-type']);
+        res.status(Number(data.res.statusCode)).send(data.body);
+        console.log(`${options.method} [${data.res.statusCode}] ${data.res.statusMessage} ${options.path}`);
+        console.log(data.body.toString('utf8'));
+    });
 });
 
 
@@ -111,21 +90,12 @@ app.get('/lead/:id', function (req, res) {
         path: `/rest/${conf.user_id}/${conf.webhook}/${action}.${conf.format}?id=${lead_id}`,
     });
 
-    const _req = https.request(options, function (_res) {
-        console.log(`${_req.method} [${_res.statusCode}] ${_res.statusMessage} ${_req.path}`);
-
-        _res.setEncoding('utf8');
-        _res.on('data', function (body) {
-            // res.status(_res.statusCode).send(build_response(res, body));
-            res.setHeader('Content-Type', _res.headers['content-type']);
-            res.status(_res.statusCode).send(body).end();
-            console.log(_res.headers['content-type'], body, "\n");
-        });
-    }).on('error', (error) => {
-        console.error(error);
-    }).end();
-
-    // request_handler(res, options);
+    btrx_request(options).then(function (data) {
+        res.set('Content-Type', data.res.headers['content-type']);
+        res.status(Number(data.res.statusCode)).send(data.body);
+        console.log(`${options.method} [${data.res.statusCode}] ${data.res.statusMessage} ${options.path}`);
+        console.log(data.body.toString('utf8'));
+    });
 });
 
 
@@ -145,22 +115,12 @@ app.post('/lead', function (req, res) {
         }
     });
 
-    var _req = https.request(options, function (_res) {
-        console.log(`${_req.method} [${_res.statusCode}] ${_res.statusMessage} ${_req.path}`);
-
-        _res.setEncoding('utf8');
-        _res.on('data', function (body) {
-            res.setHeader('Content-Type', _res.headers['content-type']);
-            res.status(_res.statusCode).send(body).end();
-            console.log(_res.headers['content-type'], body, "\n");
-        });
-    }).on('error', (error) => {
-        console.error(error);
+    btrx_request(options, data).then(function (data) {
+        res.set('Content-Type', data.res.headers['content-type']);
+        res.status(Number(data.res.statusCode)).send(data.body);
+        console.log(`${options.method} [${data.res.statusCode}] ${data.res.statusMessage} ${options.path}`);
+        console.log(data.body.toString('utf8'));
     });
-    _req.write(data);
-    _req.end();
-
-    // request_handler(res, options, data);
 });
 
 
@@ -182,22 +142,12 @@ app.patch('/lead/:id', function (req, res) {
         }
     });
 
-    var _req = https.request(options, function (_res) {
-        console.log(`${_req.method} [${_res.statusCode}] ${_res.statusMessage} ${_req.path}`);
-
-        _res.setEncoding('utf8');
-        _res.on('data', function (body) {
-            res.setHeader('Content-Type', _res.headers['content-type']);
-            res.status(_res.statusCode).send(body).end();
-            console.log(_res.headers['content-type'], body, "\n");
-        });
-    }).on('error', (error) => {
-        console.error(error);
+    btrx_request(options, data).then(function (data) {
+        res.set('Content-Type', data.res.headers['content-type']);
+        res.status(Number(data.res.statusCode)).send(data.body);
+        console.log(`${options.method} [${data.res.statusCode}] ${data.res.statusMessage} ${options.path}`);
+        console.log(data.body.toString('utf8'));
     });
-    _req.write(data);
-    _req.end();
-
-    // request_handler(res, options, data);
 });
 
 
@@ -209,21 +159,12 @@ app.delete('/lead/:id', function (req, res) {
         path: `/rest/${conf.user_id}/${conf.webhook}/${action}.${conf.format}?id=${lead_id}`,
     });
 
-    var _req = https.request(options, function (_res) {
-        console.log(`${_req.method} [${_res.statusCode}] ${_res.statusMessage} ${_req.path}`);
-
-        _res.setEncoding('utf8');
-        _res.on('data', function (body) {
-            // res.status(_res.statusCode).send(build_response(res, body));
-            res.setHeader('Content-Type', _res.headers['content-type']);
-            res.status(_res.statusCode).send(body).end();
-            console.log(_res.headers['content-type'], body, "\n");
-        });
-    }).on('error', (error) => {
-        console.error(error);
-    }).end();
-
-    // request_handler(res, options);
+    btrx_request(options).then(function (data) {
+        res.set('Content-Type', data.res.headers['content-type']);
+        res.status(Number(data.res.statusCode)).send(data.body);
+        console.log(`${options.method} [${data.res.statusCode}] ${data.res.statusMessage} ${options.path}`);
+        console.log(data.body.toString('utf8'));
+    });
 });
 
 process.on('uncaughtException', function (err) {
