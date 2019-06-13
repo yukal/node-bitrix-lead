@@ -1,0 +1,84 @@
+#!/usr/bin/bash
+
+# This bash script for serving backend using a Docker image
+#
+# Author: Yukal Alexander <yukal.alexander@gmail.com>
+# License MIT
+# Version: 3.0
+#
+# usage:
+# ./docker-start              -> starts bash
+# ./docker-start bash         -> starts bash
+# ./docker-start server       -> starts server
+# ./docker-start client       -> starts client
+# ./docker-start some_command -> starts some command
+
+
+# Set variables
+APP_NAME=${PWD##*/}
+APP_IMAGE=$APP_NAME:backend
+NODE_IMAGE=node:11-alpine
+PORTS=("8080:8080" "8181:8181")
+WORKDIR=/home/node
+
+IMAGE_ID=$(docker image ls -q "${APP_NAME}")
+
+# Dockerfile Contents
+read -r -d '' DOCKERFILE << EOM
+FROM $NODE_IMAGE
+WORKDIR $WORKDIR
+RUN apk update \
+ && apk upgrade \
+ && apk --no-cache add --virtual bash \
+ && apk --no-cache add --virtual mc \
+ && apk --no-cache add --virtual native-deps\
+ && apk --no-cache add --virtual g++ \
+ && apk --no-cache add --virtual gcc \
+ && apk --no-cache add --virtual libgcc \
+ && apk --no-cache add --virtual libstdc++ \
+ && apk --no-cache add --virtual linux-headers \
+ && apk --no-cache add --virtual make\
+ && apk --no-cache add --virtual python \
+ && npm i -g --unsafe-perm node-gyp \
+ && apk del native-deps
+EOM
+
+if [ -z "$IMAGE_ID" ]; then
+    echo "CREATE IMAGE FROM {$APP_IMAGE}";
+    docker build - <<< "${DOCKERFILE}" --tag $APP_IMAGE
+fi
+
+# Get container ID and state of the Docker image
+CONTAINER_ID=$(docker ps -q -a -f name="${APP_NAME}")
+if [ -z "$CONTAINER_ID" ];
+    then CONTAINER_STATE=false
+    else CONTAINER_STATE=$(docker inspect -f {{.State.Running}} $CONTAINER_ID)
+fi
+
+# Set arguments for Docker
+if [ -z "$1" ];
+    then ARG="bash";
+    else ARG="$1";
+fi
+
+case $1 in
+    client|server)
+        ARG="cd $1 && npm run serve"
+        ;;
+esac
+
+if [ -z "$CONTAINER_ID" ]; then
+    echo "Listening on: ${PORTS[@]}"
+
+    # Container hasn't found. Run it from an image
+    docker run -it --rm --name $APP_NAME -p "${PORTS[0]}" -p "${PORTS[1]}" \
+        -v "${PWD}":"${WORKDIR}" \
+        -w "${WORKDIR}" $APP_IMAGE /bin/bash -c "$ARG"
+else
+    # Container has found. Run it from the container
+    if [ "$CONTAINER_STATE" == "true" ]; then
+        docker exec -it $CONTAINER_ID /bin/bash -c "$ARG"
+    else
+        docker container start -ai $CONTAINER_ID
+    fi
+fi
