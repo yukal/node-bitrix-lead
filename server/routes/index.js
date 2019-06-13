@@ -1,6 +1,7 @@
-const express = require('express');
-const router = express.Router();
+module.exports = (express) => {
+    const router = express.Router();
 
-router.use('/lead', require('./lead'));
+    router.use('/lead', require('./lead'));
 
-module.exports = router;
+    return router;
+};
