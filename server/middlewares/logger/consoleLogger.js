@@ -8,8 +8,8 @@ function httpLogger(data) {
 
     } else {
 
-        console.log(`${method} [${statusCode}] ${statusMessage} ${path}`);
-        console.log(data.body.toString('utf8'));
+        const content = `${method} [${statusCode}] ${statusMessage} ${path} >> ` + data.body.toString('utf8');
+        console.log(content.replace(/\n+$/,''));
 
     }
 
