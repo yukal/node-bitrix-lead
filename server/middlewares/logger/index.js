@@ -12,7 +12,8 @@ module.exports = (express, propertyName = 'log') => {
         const item = express[target];
 
         if (!item.hasOwnProperty(propertyName)) {
-            item[propertyName] = httpTargets.indexOf(target)>-1 ?logger.http :logger.text;
+            const strategy = httpTargets.indexOf(target)>-1 ?'http' :'text';
+            item[propertyName] = logger[strategy];
         } else {
             errors.push(`Property name "${propertyName}" already exists in "${target}" object. Please use another property name`);
         }
