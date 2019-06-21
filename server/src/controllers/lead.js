@@ -1,5 +1,5 @@
 const conf = require('../config');
-const Bitrix = require('../helpers/bitrixRequest');
+const Bitrix = require('../lib/bitrixRequest');
 const bitrix = new Bitrix(conf.bitrix);
 
 const RSE = { "REGISTER_SONET_EVENT": "Y" };

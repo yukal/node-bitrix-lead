@@ -1,12 +1,12 @@
-const express = require('express');
-const router = express.Router();
+module.exports = (express, controllers) => {
+    const router = express.Router();
+    const { lead } = controllers;
 
-const leadController = require('../controllers/lead');
+    router.get('/', lead.getLeadsList);
+    router.post('/', lead.createLead);
+    router.get('/:id', lead.getLeadById);
+    router.patch('/:id', lead.updateLead);
+    router.delete('/:id', lead.deleteLead);
 
-router.get('/', leadController.getLeadsList);
-router.post('/', leadController.createLead);
-router.get('/:id', leadController.getLeadById);
-router.patch('/:id', leadController.updateLead);
-router.delete('/:id', leadController.deleteLead);
-
-module.exports = router;
+    return router;
+};
