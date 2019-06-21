@@ -7,7 +7,7 @@ Add user ID and webhook hash into a [config file](https://github.com/yukal/node-
 ``` bash
 $ cd server
 $ npm install
-$ npm run server
+$ npm run serve
 ```
 
 ### Start Client
@@ -15,7 +15,7 @@ $ npm run server
 ``` bash
 $ cd client
 $ npm install
-$ npm run server
+$ npm run serve
 ```
 
 ### Start With Docker
