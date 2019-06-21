@@ -1,10 +1,11 @@
 const conf = require('./config');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const attachLogger = require('./middlewares/logger');
-const express = attachLogger(require('express'));
+const express = require('./lib/decorator')('express');
 const app = express();
-const routes = require('./routes')(express);
+
+const controllers = require('./controllers');
+const routes = require('./routes')(express, controllers);
 
 app.set('dirname', __dirname);
 
@@ -22,9 +23,5 @@ app.use(bodyParser.json());
 app.use(routes);
 
 app.listen(conf.server.port, conf.server.host, () => {
-    const settings = `http://${conf.server.host}:${conf.server.port}`;
-    app.log(`Start server on ${settings}`);
-
-    // console.log(`Listening on ${settings}`);
-    // console.log("Press ^C to exit\n");
+    app.log.info('Start server on %s:%d', conf.server.host, conf.server.port);
 });
